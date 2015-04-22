@@ -8,6 +8,21 @@ using Toybox.WatchUi as Ui;
 using Toybox.Application as App;
 
 class ActivityWidgetView extends Ui.View {
+    var mode = "STEPS";
+
+    function cycleView() {
+        if (mode.equals("STEPS")) {
+            mode = "DISTANCE";
+        }
+        else if (mode.equals("DISTANCE")) {
+            mode = "CALORIES";
+        }
+        else if (mode.equals("CALORIES")) {
+            mode = "STEPS";
+        }
+        Ui.requestUpdate();
+    }
+
     //! Load your resources here
     function onLayout(dc) {
     }
@@ -20,6 +35,13 @@ class ActivityWidgetView extends Ui.View {
     //! state of your app here.
     function onHide() {
     }
+
+    // For some reason distance is in cm.
+    var distanceDivisor =
+        (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) ?
+        100000f :
+        160900f; // cm in a mile
+
 
     //! Update the view
     function onUpdate(dc) {
@@ -38,8 +60,7 @@ class ActivityWidgetView extends Ui.View {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
 
-        dc.drawText(109, 15, Graphics.FONT_XTINY,
-                    "HISTORY",
+        dc.drawText(109, 15, Graphics.FONT_XTINY, mode,
                     Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
         var x1 = 65;
         var y1 = 40;
@@ -74,7 +95,16 @@ class ActivityWidgetView extends Ui.View {
                         Graphics.TEXT_JUSTIFY_RIGHT);
 
             var text_x = x_scale * steps;
-            var str = "" + steps;
+            var str = "";
+            if (mode.equals("STEPS")) {
+                str = "" + steps;
+            }
+            else if (mode.equals("DISTANCE")) {
+                str = (hist[i].distance / distanceDivisor).format("%.1f");
+            }
+            else if (mode.equals("CALORIES")) {
+                str = "" + hist[i].calories;
+            }
             var w = dc.getTextWidthInPixels(str, Graphics.FONT_XTINY);
             if (w + 10 > text_x) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
@@ -115,6 +145,18 @@ class FakeHistory {
     var steps;
 }
 
+class ActivityWidgetDelegate extends Ui.InputDelegate {
+    function onKey(evt) {
+        if (evt.getKey() == Ui.KEY_ENTER) {
+            widget.cycleView();
+            return true;
+        }
+        return false;
+    } 
+}
+
+var widget;
+
 class ActivityWidgetApp extends App.AppBase {
     function onStart() {
     }
@@ -123,6 +165,7 @@ class ActivityWidgetApp extends App.AppBase {
     }
 
     function getInitialView() {
-        return [new ActivityWidgetView()];
+        widget = new ActivityWidgetView();
+        return [widget, new ActivityWidgetDelegate()];
     }
 }
