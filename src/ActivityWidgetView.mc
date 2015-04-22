@@ -121,8 +121,6 @@ class ActivityWidgetView extends Ui.View {
             else {
                 dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
                 dc.fillRectangle(x1, y, x_scale * data, y_scale - 1);
-                dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
-                dc.fillRectangle(x1 + x_scale * goal - 1, y, 1, y_scale - 1);
             }
             
             var moment = Time.Gregorian.info(hist[i].startOfDay, Time.FORMAT_LONG);
