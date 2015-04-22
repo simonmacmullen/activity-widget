@@ -38,10 +38,9 @@ class ActivityWidgetView extends Ui.View {
 
     // For some reason distance is in cm.
     var distanceDivisor =
-        (System.getDeviceSettings().paceUnits == System.UNIT_METRIC) ?
+        (System.getDeviceSettings().distanceUnits == System.UNIT_METRIC) ?
         100000f :
         160900f; // cm in a mile
-
 
     //! Update the view
     function onUpdate(dc) {
@@ -49,11 +48,23 @@ class ActivityWidgetView extends Ui.View {
         //hist = fakeHistory();
         var max = 0;
         for (var i = 0; i < hist.size(); i++) {
-            if (hist[i].steps > max) {
-                max = hist[i].steps;
+            if (mode.equals("STEPS")) {
+                if (hist[i].steps > max) {
+                    max = hist[i].steps;
+                }
+                if (hist[i].stepGoal > max) {
+                    max = hist[i].stepGoal;
+                }
             }
-            if (hist[i].stepGoal > max) {
-                max = hist[i].stepGoal;
+            else if (mode.equals("DISTANCE")) {
+                if (hist[i].distance > max) {
+                    max = hist[i].distance;
+                }
+            }
+            else {
+                if (hist[i].calories > max) {
+                    max = hist[i].calories;
+                }
             }
         }
 
@@ -62,6 +73,10 @@ class ActivityWidgetView extends Ui.View {
 
         dc.drawText(109, 15, Graphics.FONT_XTINY, mode,
                     Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+        if (hist.size() == 0) {
+            return;
+        }
+
         var x1 = 65;
         var y1 = 40;
         var x2 = 180;
@@ -72,39 +87,50 @@ class ActivityWidgetView extends Ui.View {
 
         for (var i = 0; i < hist.size(); i++) {
             var y = y1 + y_scale * i;
-            var steps = hist[i].steps;
-            var goal = hist[i].stepGoal;
-            if (steps < goal) {
+
+            var str;
+            var data;
+            var goal = null;
+
+            if (mode.equals("STEPS")) {
+                data = hist[i].steps;
+                goal = hist[i].stepGoal;
+                str = "" + data;
+            }
+            else if (mode.equals("DISTANCE")) {
+                data = hist[i].distance;
+                str = (data / distanceDivisor).format("%.1f");
+            }
+            else {
+                data = hist[i].calories;
+                str = "" + data;
+            }
+
+            if (goal == null) {
+                dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+                dc.fillRectangle(x1, y, x_scale * data, y_scale - 1);
+            }
+            else if (data < goal) {
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
                 dc.fillRectangle(x1 + x_scale * goal - 1, y, 2, y_scale - 1);
                 dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
-                dc.fillRectangle(x1, y, x_scale * steps, y_scale - 1);
+                dc.fillRectangle(x1, y, x_scale * data, y_scale - 1);
             }
             else {
                 dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-                dc.fillRectangle(x1, y, x_scale * steps, y_scale - 1);
+                dc.fillRectangle(x1, y, x_scale * data, y_scale - 1);
                 dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
                 dc.fillRectangle(x1 + x_scale * goal - 1, y, 1, y_scale - 1);
             }
             
-            var info = Time.Gregorian.info(hist[i].startOfDay, Time.FORMAT_LONG);
+            var moment = Time.Gregorian.info(hist[i].startOfDay, Time.FORMAT_LONG);
             var text_y = y - 1;
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
             dc.drawText(x1 - 5, text_y, Graphics.FONT_XTINY,
-                        info.day_of_week.substring(0, 1) + " " + info.day,
+                        moment.day_of_week.substring(0, 1) + " " + moment.day,
                         Graphics.TEXT_JUSTIFY_RIGHT);
 
-            var text_x = x_scale * steps;
-            var str = "";
-            if (mode.equals("STEPS")) {
-                str = "" + steps;
-            }
-            else if (mode.equals("DISTANCE")) {
-                str = (hist[i].distance / distanceDivisor).format("%.1f");
-            }
-            else if (mode.equals("CALORIES")) {
-                str = "" + hist[i].calories;
-            }
+            var text_x = x_scale * data;
             var w = dc.getTextWidthInPixels(str, Graphics.FONT_XTINY);
             if (w + 10 > text_x) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
