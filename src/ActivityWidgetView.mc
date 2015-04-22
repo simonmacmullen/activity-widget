@@ -74,6 +74,8 @@ class ActivityWidgetView extends Ui.View {
         dc.drawText(109, 15, Graphics.FONT_XTINY, mode,
                     Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
         if (hist.size() == 0) {
+            dc.drawText(109, 109, Graphics.FONT_TINY, "NO DATA",
+                        Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
             return;
         }
 
