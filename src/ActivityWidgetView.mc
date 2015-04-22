@@ -157,10 +157,10 @@ class ActivityWidgetView extends Ui.View {
 
 class FakeHistory {
     function initialize(dayMinus) {
-        calories = 2000;
-        distance = 100000;
-        stepGoal = 10000 - dayMinus * 1000;
-        steps = dayMinus * 2000;
+        calories = 1800 + Math.rand() % 400;
+        distance = 100000 + Math.rand() % 1000000;
+        stepGoal = 5000 + dayMinus * 1000;
+        steps = 5000 + Math.rand() % 5000;
         startOfDay = Time.today().add(new Time.Duration(-86400 * dayMinus));
     }
 
