@@ -79,15 +79,16 @@ class ActivityWidgetView extends Ui.View {
             return;
         }
 
-        var x1 = 65;
-        var y1 = 40;
-        var x2 = 180;
-        var y2 = 180;
+        var x1 = 55;
+        var y1 = 35;
+        var x2 = 190;
+        var y2 = 183;
         
         var x_scale = 1.0 * (x2 - x1) / max;
         var y_scale = (y2 - y1) / hist.size();
 
         for (var i = 0; i < hist.size(); i++) {
+            var item = hist[hist.size() - i - 1];
             var y = y1 + y_scale * i;
 
             var str;
@@ -95,51 +96,56 @@ class ActivityWidgetView extends Ui.View {
             var goal = null;
 
             if (mode.equals("STEPS")) {
-                data = hist[i].steps;
-                goal = hist[i].stepGoal;
+                data = item.steps;
+                goal = item.stepGoal;
                 str = "" + data;
             }
             else if (mode.equals("DISTANCE")) {
-                data = hist[i].distance;
+                data = item.distance;
                 str = (data / distanceDivisor).format("%.1f");
             }
             else {
-                data = hist[i].calories;
+                data = item.calories;
                 str = "" + data;
             }
 
+            var w = x_scale * data;
+            var h = y_scale - 1;
+
             if (goal == null) {
                 dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
-                dc.fillRectangle(x1, y, x_scale * data, y_scale - 1);
+                dc.fillRoundedRectangle(x1, y, w, h, 2);
             }
             else if (data < goal) {
-                dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-                dc.fillRectangle(x1 + x_scale * goal - 1, y, 2, y_scale - 1);
+                var w_goal = x_scale * goal;
+                dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+                dc.fillRoundedRectangle(x1, y, w_goal, h, 2);
+                dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
+                dc.fillRoundedRectangle(x1 + 2, y + 2, w_goal - 4, h - 4, 2);
                 dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
-                dc.fillRectangle(x1, y, x_scale * data, y_scale - 1);
+                dc.fillRoundedRectangle(x1, y, w, h, 2);
             }
             else {
                 dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-                dc.fillRectangle(x1, y, x_scale * data, y_scale - 1);
+                dc.fillRoundedRectangle(x1, y, w, h, 2);
             }
             
-            var moment = Time.Gregorian.info(hist[i].startOfDay, Time.FORMAT_LONG);
+            var moment = Time.Gregorian.info(item.startOfDay, Time.FORMAT_LONG);
             var text_y = y - 1;
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
             dc.drawText(x1 - 5, text_y, Graphics.FONT_XTINY,
                         moment.day_of_week.substring(0, 1) + " " + moment.day,
                         Graphics.TEXT_JUSTIFY_RIGHT);
 
-            var text_x = x_scale * data;
-            var w = dc.getTextWidthInPixels(str, Graphics.FONT_XTINY);
-            if (w + 10 > text_x) {
+            var text_w = dc.getTextWidthInPixels(str, Graphics.FONT_XTINY);
+            if (text_w + 10 > w) {
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(x1 + text_x + 5, text_y, Graphics.FONT_XTINY,
+                dc.drawText(x1 + w + 5, text_y, Graphics.FONT_XTINY,
                             str, Graphics.TEXT_JUSTIFY_LEFT);
             }
             else {
                 dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(x1 + text_x - 5, text_y, Graphics.FONT_XTINY,
+                dc.drawText(x1 + w - 5, text_y, Graphics.FONT_XTINY,
                             str, Graphics.TEXT_JUSTIFY_RIGHT);            
             }
         }
