@@ -130,16 +130,7 @@ class ActivityWidgetView extends Ui.View {
                 dc.fillRoundedRectangle(x1, y, w, h, 2);
             }
 
-            // History.startOfDay is a Moment which is supposed to be
-            // normalised into UTC. But for startOfDay it appears to either be
-            // the local midnight time NOT normalised, or the UTC time at
-            // which midnight occured in the UTC zone (same
-            // difference). That's a problem since Gregorian.info() will apply
-            // a timezone offset, when effectively it already has one baked
-            // in. So we need to reverse the offset here to work around it :-(
-            var delta = new Time.Duration(-System.getClockTime().timeZoneOffset);
-            var localStartOfDay = item.startOfDay.add(delta);
-            var info = Time.Gregorian.info(localStartOfDay, Time.FORMAT_LONG);
+            var info = Time.Gregorian.info(item.startOfDay, Time.FORMAT_LONG);
 
             var text_y = y - 1;
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
